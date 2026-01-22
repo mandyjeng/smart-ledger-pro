@@ -2,6 +2,7 @@
 # Dependencies
 node_modules
 dist
+  .env       <--- 務必加上這一行
 dist-ssr
 *.local
 
