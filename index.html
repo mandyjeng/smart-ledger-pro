@@ -4,31 +4,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Ledger Pro</title>
+    <title>Smart Paw Ledger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Grandstander:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --ink-black: #18181B;
+            --paper-white: #FDFBF7;
+            --paw-red: #EF4444;
+            --paw-yellow: #FBBF24;
+        }
+        body { 
+            font-family: 'Noto Sans TC', 'Grandstander', sans-serif; 
+            background-color: var(--paper-white);
+            color: var(--ink-black);
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+        }
+        .comic-card {
+            background: white;
+            border: 3px solid var(--ink-black);
+            border-radius: 1.5rem;
+            box-shadow: 6px 6px 0px var(--ink-black);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .comic-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px var(--ink-black);
+        }
+        .comic-btn {
+            border: 2px solid var(--ink-black);
+            box-shadow: 3px 3px 0px var(--ink-black);
+            transition: all 0.1s;
+        }
+        .comic-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px var(--ink-black);
+        }
+        .input-comic {
+            border: 2px solid var(--ink-black);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: white;
+            outline: none;
+            transition: ring 0.2s;
+        }
+        .input-comic:focus {
+            ring: 3px;
+            ring-color: var(--paw-yellow);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--paper-white); }
+        ::-webkit-scrollbar-thumb { background: var(--ink-black); border-radius: 5px; border: 2px solid var(--paper-white); }
+
+        @keyframes pop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: pop 0.3s ease-out forwards; }
     </style>
 
 <script type="importmap">
 {
   "imports": {
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-    "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
     "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
-    "recharts": "https://esm.sh/recharts@^3.7.0"
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "url": "https://esm.sh/url@^0.11.4",
+    "path": "https://esm.sh/path@^0.12.7"
   }
 }
 </script>
-  <script type="module" crossorigin src="/smart-ledger-pro/assets/index-_Q73HgXy.js"></script>
+  <script type="module" crossorigin src="/smart-ledger-pro/assets/index-Cy5iVcW_.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body>
     <div id="root"></div>
-    <!-- Vite 需要這個標籤來當作程式入口 -->
 </body>
 </html>
