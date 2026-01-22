@@ -9,6 +9,6 @@ export const CATEGORIES = {
 };
 
 export const DEFAULT_SETTINGS = {
-  googleSheetUrl: 'https://script.google.com/macros/s/AKfycbwpEjoFZFt6iYXkfoRMsjyySLqK9nhejZPY9qvOjrc6PffuTIifBmL2kLFmPXiqvouF/exec',
-  userName: '使用者'
+  googleSheetUrl: 'https://script.google.com/macros/s/AKfycbyMp1-IRtaEP2-Xsut5VYbqVFRyBj89QWb4uhMbOIq1H1Dw2b8p58p_boKjb61sZtZG/exec',
+  userName: 'Mandy'
 };

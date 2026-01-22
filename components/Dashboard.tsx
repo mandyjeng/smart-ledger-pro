@@ -13,6 +13,7 @@ interface Props {
 const Dashboard: React.FC<Props> = ({ transactions, settings, onMergeTransactions }) => {
   const [isFetching, setIsFetching] = useState(false);
   const [cloudItems, setCloudItems] = useState<Transaction[]>([]);
+  const [syncSuccess, setSyncSuccess] = useState(false);
 
   const stats = useMemo(() => {
     const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -25,16 +26,23 @@ const Dashboard: React.FC<Props> = ({ transactions, settings, onMergeTransaction
       alert("請先在設定中填入 Google Sheet URL");
       return;
     }
+    
     setIsFetching(true);
+    setSyncSuccess(false);
+    
     try {
       const data = await fetchHistoryFromSheet(settings.googleSheetUrl);
       if (data && data.length > 0) {
-        setCloudItems(data.slice(0, 10)); // 只顯示前 10 筆
+        const latest10 = data.slice(0, 10);
+        setCloudItems(latest10);
+        onMergeTransactions(latest10);
+        setSyncSuccess(true);
+        setTimeout(() => setSyncSuccess(false), 3000);
       } else {
-        alert("雲端目前沒有新資料或尚未開放讀取權限。");
+        alert("雲端讀取成功，但目前沒有歷史資料。請確保您的試算表不是空的。");
       }
-    } catch (err) {
-      alert("取得失敗，請確認 Script URL 是否正確。");
+    } catch (err: any) {
+      alert(`讀取失敗！\n\n常見原因：GAS 腳本缺少 doGet() 函數。\n\n錯誤細節：${err.message}`);
     } finally {
       setIsFetching(false);
     }
@@ -70,31 +78,45 @@ const Dashboard: React.FC<Props> = ({ transactions, settings, onMergeTransaction
             </h4>
             <p className="text-zinc-500 font-bold text-sm">從您的 Google Sheet 取得最新 10 筆紀錄</p>
           </div>
-          <button 
-            onClick={handleFetchCloud}
-            disabled={isFetching}
-            className="bg-white px-8 py-3 rounded-2xl comic-btn font-black flex items-center justify-center min-w-[160px]"
-          >
-            {isFetching ? (
-              <i className="fa-solid fa-circle-notch animate-spin mr-2"></i>
-            ) : (
-              <i className="fa-solid fa-sync-alt mr-2"></i>
-            )}
-            {isFetching ? '讀取中...' : '取得最新資料'}
-          </button>
+          
+          <div className="flex flex-col items-center">
+            <button 
+              onClick={handleFetchCloud}
+              disabled={isFetching}
+              className={`bg-red-500 text-white px-8 py-3 rounded-2xl comic-btn font-black flex items-center justify-center min-w-[240px] shadow-[4px_4px_0px_#18181b] disabled:bg-zinc-400 disabled:shadow-none transition-all ${syncSuccess ? 'bg-emerald-500' : ''}`}
+            >
+              {isFetching ? (
+                <i className="fa-solid fa-circle-notch animate-spin mr-2"></i>
+              ) : syncSuccess ? (
+                <i className="fa-solid fa-check mr-2"></i>
+              ) : (
+                <i className="fa-solid fa-file-excel mr-2"></i>
+              )}
+              {isFetching ? '讀取中...' : syncSuccess ? '同步成功！' : '取得 Excel 最新 10 筆資料'}
+            </button>
+            {syncSuccess && <span className="text-[10px] font-black text-emerald-600 mt-2 animate-bounce">資料已更新至本機</span>}
+          </div>
         </div>
 
         <div className="space-y-3">
            {cloudItems.length > 0 ? (
-             cloudItems.map(item => (
-               <div key={item.id} className="opacity-70 grayscale hover:grayscale-0 transition-all">
-                 <TransactionCard transaction={item} onDelete={() => {}} />
-               </div>
-             ))
+             <div className="animate-pop">
+               {cloudItems.map(item => (
+                 <div key={item.id} className="mb-3 opacity-90 hover:opacity-100 transition-opacity">
+                   <TransactionCard transaction={item} onDelete={() => {}} />
+                 </div>
+               ))}
+             </div>
+           ) : isFetching ? (
+             <div className="py-12 flex flex-col items-center justify-center text-zinc-400">
+                <i className="fa-solid fa-spinner animate-spin text-4xl mb-3"></i>
+                <span className="font-bold italic">正在發送 GET 請求驗證權限...</span>
+             </div>
            ) : (
              <div className="border-2 border-zinc-200 border-dashed rounded-2xl py-12 flex flex-col items-center justify-center text-zinc-300">
                 <i className="fa-solid fa-database text-4xl mb-3"></i>
                 <span className="font-bold italic">尚無雲端資料，請點擊按鈕同步</span>
+                <p className="text-[10px] mt-2 text-zinc-300 font-bold">小提示：寫入用 doPost，讀取用 doGet，兩者缺一不可喔！</p>
              </div>
            )}
         </div>
