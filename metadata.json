@@ -1,0 +1,7 @@
+{
+  "name": "Smart Ledger Pro",
+  "description": "A smart bookkeeping application that integrates with Google Sheets and uses Gemini AI to process natural language expenses and income entries.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
