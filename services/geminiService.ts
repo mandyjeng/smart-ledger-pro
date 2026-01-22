@@ -11,12 +11,12 @@ const ai = new GoogleGenAI({ apiKey: apiKey });
 
 export const parseEntryWithAI = async (input: string): Promise<AIResponse | null> => {
   // 診斷日誌：確認 API Key 是否存在 (僅顯示前幾碼以保安全)
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
+  
+  if (!ai.apiKey) {
     console.error("❌ API_KEY 未定義！請檢查 GitHub Secrets 或部署環境變數。");
     return null;
   } else {
-    console.log(`✅ API_KEY 已偵測，開頭為: ${apiKey.substring(0, 4)}...`);
+    console.log(`✅ API_KEY 已偵測，開頭為: ${ai.apiKey.substring(0, 4)}...`);
   }
 
   try {
