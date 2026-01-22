@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MandyJeng Ledger</title>
+    <title>智能記帳本</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Grandstander:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --ink-black: #18181B;
@@ -16,12 +16,13 @@
             --paw-yellow: #FBBF24;
         }
         body { 
-            font-family: 'Noto Sans TC', 'Grandstander', sans-serif; 
+            font-family: 'Noto Sans TC', 'Inter', sans-serif; 
             background-color: var(--paper-white);
             color: var(--ink-black);
             overflow-x: hidden;
             letter-spacing: -0.01em;
         }
+        /* 移除斜體樣式 */
         .comic-card {
             background: white;
             border: 3px solid var(--ink-black);
@@ -54,7 +55,6 @@
             ring: 3px;
             ring-color: var(--paw-yellow);
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: var(--paper-white); }
         ::-webkit-scrollbar-thumb { background: var(--ink-black); border-radius: 5px; border: 2px solid var(--paper-white); }
