@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Transaction, Settings } from './types';
 import { DEFAULT_SETTINGS } from './constants';
@@ -222,9 +221,9 @@ function doPost(e) {
                     </pre>
                   </div>
                   <p className="mt-3 text-[10px] text-zinc-500 font-bold leading-relaxed">
-                    1. 打開您的試算表 > 擴充功能 > Apps Script<br/>
+                    1. 打開您的試算表 &gt; 擴充功能 &gt; Apps Script<br/>
                     2. 貼上以上程式碼<br/>
-                    3. 點擊「部署」 > 「新部署」<br/>
+                    3. 點擊「部署」 &gt; 「新部署」<br/>
                     4. 權限設定為「所有人 (Anyone)」
                   </p>
                 </div>
