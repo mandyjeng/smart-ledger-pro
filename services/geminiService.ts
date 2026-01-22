@@ -7,7 +7,13 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 if (!apiKey) {
   console.error("❌ API Key is missing! Check your .env file or GitHub Secrets.");
 }
+
+if (!apiKey || apiKey === "") {
+  throw new Error("API_KEY 未設定！請在系統環境變數中設定您的 Gemini API Key。");
+}
+
 const ai = new GoogleGenAI({ apiKey: apiKey });
+
 
 export const parseEntryWithAI = async (input: string): Promise<AIResponse | null> => {
   try {
@@ -38,11 +44,22 @@ export const parseEntryWithAI = async (input: string): Promise<AIResponse | null
       }
     });
 
-    const text = response.text;
-    if (!text) return null;
+const text = response.text;
+    if (!text) {
+      throw new Error("AI 伺服器回傳了空內容，請稍後再試。");
+    }
+    
     return JSON.parse(text) as AIResponse;
-  } catch (error) {
-    console.error("AI Parsing error:", error);
-    return null;
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    
+    if (error.message?.includes("403")) {
+      throw new Error("API 權限錯誤 (403)：請檢查您的 API Key 是否有效且具備權限。");
+    }
+    if (error.message?.includes("429")) {
+      throw new Error("請求過於頻繁 (429)：請稍後再試。");
+    }
+    
+    throw new Error(`AI 分析失敗: ${error.message || "未知錯誤"}`);
   }
 };

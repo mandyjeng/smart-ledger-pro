@@ -19,7 +19,6 @@ const App: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'settings'>('dashboard');
 
-  // 從 Google Sheet 獲取資料的通用函數
   const refreshDataFromSheet = useCallback(async (showLoading = true) => {
     if (!settings.googleSheetUrl || !settings.googleSheetUrl.startsWith('http')) return;
     
@@ -37,29 +36,37 @@ const App: React.FC = () => {
     }
   }, [settings.googleSheetUrl]);
 
-  // 1. 初始化邏輯：進頁面先查一次
   useEffect(() => {
-    // 先載入本地快存
     const saved = localStorage.getItem('transactions');
     if (saved) {
       try {
         setTransactions(JSON.parse(saved));
       } catch(e) {}
     }
-    
-    // 同時靜默從雲端更新
     refreshDataFromSheet(false);
   }, [refreshDataFromSheet]);
 
-  // 監聽設定存檔
   useEffect(() => {
     localStorage.setItem('app_settings', JSON.stringify(settings));
   }, [settings]);
 
-  // 按類別分組明細
+  // 計算本週週一的日期 (YYYY-MM-DD)
+  const mondayDateStr = useMemo(() => {
+    const now = new Date();
+    const day = now.getDay(); // 0 (Sun) - 6 (Sat)
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // 如果是週日，往回扣 6 天到週一；否則扣到當週週一
+    const monday = new Date(now.setDate(diff));
+    return monday.toISOString().split('T')[0];
+  }, []);
+
+  // 按類別分組明細 (僅限本週)
   const groupedHistory = useMemo(() => {
     const groups: Record<string, { txs: Transaction[], total: number }> = {};
-    transactions.forEach(tx => {
+    
+    // 篩選出本週的交易
+    const weeklyTransactions = transactions.filter(tx => tx.date >= mondayDateStr);
+
+    weeklyTransactions.forEach(tx => {
       const cat = tx.category || '未分類';
       if (!groups[cat]) {
         groups[cat] = { txs: [], total: 0 };
@@ -68,9 +75,8 @@ const App: React.FC = () => {
       groups[cat].total += (tx.type === 'expense' ? -tx.amount : tx.amount);
     });
     return Object.entries(groups).sort((a, b) => b[1].txs.length - a[1].txs.length);
-  }, [transactions]);
+  }, [transactions, mondayDateStr]);
 
-  // 2. 送出資料：立即更新總覽並同步
   const handleAiSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!aiInput.trim() || isAiProcessing) return;
@@ -88,25 +94,22 @@ const App: React.FC = () => {
           type: parsed.type,
         };
         
-        // 立即更新本地 state，總覽會馬上跳動
         const updated = [newTx, ...transactions];
         setTransactions(updated);
         localStorage.setItem('transactions', JSON.stringify(updated));
         setAiInput('');
 
-        // 背景同步雲端
         if (settings.googleSheetUrl) {
           syncToGoogleSheet(newTx, settings.googleSheetUrl.trim());
         }
       }
     } catch (error: any) {
-      alert("AI 處理失敗，請稍後再試。");
+      alert(`⚠️ 錯誤：${error.message}`);
     } finally {
       setIsAiProcessing(false);
     }
   };
 
-  // 3. 切換標籤：按下「明細」才重新抓取
   const handleTabChange = (tab: 'dashboard' | 'history' | 'settings') => {
     setActiveTab(tab);
     if (tab === 'history') {
@@ -115,7 +118,7 @@ const App: React.FC = () => {
   };
 
   const deleteTransaction = (id: string) => {
-    if (confirm('確定要刪除這筆紀錄嗎？ (僅刪除手機本地紀錄)')) {
+    if (confirm('確定要刪除這筆紀錄嗎？')) {
       const updated = transactions.filter(t => t.id !== id);
       setTransactions(updated);
       localStorage.setItem('transactions', JSON.stringify(updated));
@@ -124,7 +127,6 @@ const App: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 min-h-screen flex flex-col">
-      {/* Header Section - 移除所有 italic */}
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div className="space-y-2">
           <div className="flex items-center space-x-3">
@@ -136,18 +138,17 @@ const App: React.FC = () => {
             </h1>
           </div>
           <p className="text-zinc-500 font-bold text-lg leading-none">
-            你好，{settings.userName}！{isSyncing ? '正在同步雲端...' : '資料已更新。'}
+            你好，{settings.userName}！{isSyncing ? '同步中...' : '資料已更新'}
           </p>
         </div>
         
         <nav className="flex items-center bg-white border-3 border-zinc-900 rounded-2xl p-1.5 shadow-[4px_4px_0px_#18181b]">
           <button onClick={() => handleTabChange('dashboard')} className={`px-6 py-2 rounded-xl font-black text-sm transition-all ${activeTab === 'dashboard' ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-100'}`}>總覽</button>
-          <button onClick={() => handleTabChange('history')} className={`px-6 py-2 rounded-xl font-black text-sm transition-all ${activeTab === 'history' ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-100'}`}>明細</button>
+          <button onClick={() => handleTabChange('history')} className={`px-6 py-2 rounded-xl font-black text-sm transition-all ${activeTab === 'history' ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-100'}`}>本週明細</button>
           <button onClick={() => handleTabChange('settings')} className={`px-6 py-2 rounded-xl font-black text-sm transition-all ${activeTab === 'settings' ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-100'}`}>設定</button>
         </nav>
       </header>
 
-      {/* Main Content Area */}
       <main className="flex-1 animate-pop">
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -198,11 +199,16 @@ const App: React.FC = () => {
         {activeTab === 'history' && (
           <div className="space-y-12">
             <div className="flex items-center justify-between border-b-4 border-zinc-900 pb-4">
-              <h2 className="text-3xl font-black uppercase text-zinc-800 flex items-center">
-                分類明細
-                {isSyncing && <span className="ml-4 text-sm font-black text-red-500 animate-pulse uppercase">載入最新資料中</span>}
-              </h2>
-              <div className="text-xs font-black bg-zinc-100 px-3 py-1 rounded-full border-2 border-zinc-900">共 {transactions.length} 筆</div>
+              <div className="space-y-1">
+                <h2 className="text-3xl font-black uppercase text-zinc-800 flex items-center">
+                  本週分類明細
+                  {isSyncing && <span className="ml-4 text-sm font-black text-red-500 animate-pulse uppercase">更新中</span>}
+                </h2>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                  統計範圍：{mondayDateStr} 至今
+                </p>
+              </div>
+              <div className="text-xs font-black bg-zinc-100 px-3 py-1 rounded-full border-2 border-zinc-900">本週共 {groupedHistory.reduce((acc, curr) => acc + curr[1].txs.length, 0)} 筆</div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -226,8 +232,8 @@ const App: React.FC = () => {
                   </div>
                 ))
               ) : (
-                <div className="col-span-full py-20 text-center text-zinc-400 font-bold">
-                  {isSyncing ? '正在連線雲端資料庫...' : '尚無紀錄'}
+                <div className="col-span-full py-20 text-center text-zinc-400 font-bold uppercase">
+                  {isSyncing ? '正在連線雲端資料庫...' : '本週尚無任何紀錄'}
                 </div>
               )}
             </div>
@@ -263,8 +269,8 @@ const App: React.FC = () => {
       <footer className="mt-20 border-t-3 border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-400 font-black text-xs uppercase tracking-widest gap-4">
          <div>© 2026 Smart Ledger</div>
          <div className="flex space-x-6">
+            <span>Weekly Focus</span>
             <span>Clean UI</span>
-            <span>Zero Italics</span>
          </div>
       </footer>
     </div>
