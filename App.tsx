@@ -7,7 +7,7 @@ import { syncToGoogleSheet } from './services/googleSheetService';
 import Dashboard from './components/Dashboard';
 import TransactionCard from './components/TransactionCard';
 
-const App: React.FC = () => {
+const App: React.FC = () => { 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [settings, setSettings] = useState<Settings>(() => {
     const saved = localStorage.getItem('app_settings');
