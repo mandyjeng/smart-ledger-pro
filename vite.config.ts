@@ -9,7 +9,7 @@ export default defineConfig({
     // 增加預設值防止 process.env.API_KEY 為 undefined 時導致的語法錯誤
     'process.env.API_KEY': JSON.stringify(process.env.API_KEY || ''),
   },
-  base: '/smart-ledger-pro/',
+  // base: '/smart-ledger-pro/',
   // build: {
   //   outDir: 'dist',
   //   sourcemap: false,
