@@ -6,8 +6,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // 確保 process.env 在瀏覽器環境中可用
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
+    // 增加預設值防止 process.env.API_KEY 為 undefined 時導致的語法錯誤
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || ''),
   },
-  base: './', // 確保在 GitHub Pages 的子路徑下能正確讀取資源
+  base: './', 
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+  }
 });
