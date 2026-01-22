@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Transaction, Settings } from './types';
 import { DEFAULT_SETTINGS } from './constants';
@@ -130,29 +131,30 @@ function doPost(e) {
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <div className="lg:col-span-8 space-y-10">
-              <Dashboard transactions={transactions} settings={settings} onMergeTransactions={handleMergeTransactions} />
-              
-              <div className="bg-yellow-400 border-4 border-zinc-900 rounded-3xl p-8 shadow-[8px_8px_0px_#18181b] relative overflow-hidden">
-                <div className="absolute -right-8 -bottom-8 opacity-10 rotate-12">
-                   <i className="fa-solid fa-wand-sparkles text-9xl"></i>
+              <Dashboard transactions={transactions} settings={settings} onMergeTransactions={handleMergeTransactions}>
+                {/* AI Input Section - Moved inside Dashboard to control ordering */}
+                <div className="bg-yellow-400 border-4 border-zinc-900 rounded-3xl p-8 shadow-[8px_8px_0px_#18181b] relative overflow-hidden">
+                  <div className="absolute -right-8 -bottom-8 opacity-10 rotate-12">
+                     <i className="fa-solid fa-wand-sparkles text-9xl"></i>
+                  </div>
+                  <h3 className="text-2xl font-black mb-4 flex items-center">
+                    <i className="fa-solid fa-wand-magic-sparkles mr-3"></i>
+                    AI 記帳
+                  </h3>
+                  <form onSubmit={handleAiSubmit} className="relative z-10">
+                    <input 
+                      type="text"
+                      placeholder="例如：午餐花了 200 元..."
+                      value={aiInput}
+                      onChange={(e) => setAiInput(e.target.value)}
+                      className="w-full bg-white border-3 border-zinc-900 rounded-2xl py-5 px-6 text-xl font-bold shadow-[4px_4px_0px_rgba(0,0,0,0.1)] focus:outline-none"
+                    />
+                    <button disabled={isAiProcessing || !aiInput.trim()} className="mt-4 bg-zinc-900 text-white w-full py-4 rounded-xl font-black text-lg comic-btn disabled:opacity-50">
+                      {isAiProcessing ? '分析中...' : '送出紀錄'}
+                    </button>
+                  </form>
                 </div>
-                <h3 className="text-2xl font-black mb-4 flex items-center">
-                  <i className="fa-solid fa-wand-magic-sparkles mr-3"></i>
-                  智能記帳助理
-                </h3>
-                <form onSubmit={handleAiSubmit} className="relative z-10">
-                  <input 
-                    type="text"
-                    placeholder="例如：午餐花了 200 元..."
-                    value={aiInput}
-                    onChange={(e) => setAiInput(e.target.value)}
-                    className="w-full bg-white border-3 border-zinc-900 rounded-2xl py-5 px-6 text-xl font-bold shadow-[4px_4px_0px_rgba(0,0,0,0.1)] focus:outline-none"
-                  />
-                  <button disabled={isAiProcessing || !aiInput.trim()} className="mt-4 bg-zinc-900 text-white w-full py-4 rounded-xl font-black text-lg comic-btn disabled:opacity-50">
-                    {isAiProcessing ? '分析中...' : '送出紀錄'}
-                  </button>
-                </form>
-              </div>
+              </Dashboard>
             </div>
 
             <div className="lg:col-span-4">
