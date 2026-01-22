@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Transaction, Settings } from './types';
 import { DEFAULT_SETTINGS } from './constants';
-import { parseEntryWithAI } from './services/geminiService';
+// import { parseEntryWithAI } from './services/geminiService';
+import { parseEntryWithAI } from './services/ai-parser';
 import { syncToGoogleSheet, fetchHistoryFromSheet } from './services/googleSheetService';
 import Dashboard from './components/Dashboard';
 import TransactionCard from './components/TransactionCard';
