@@ -18,7 +18,7 @@ export const parseEntryWithAI = async (input: string): Promise<AIResponse | null
       
       規則:
       1. 識別金額 (amount)。
-      2. 識別類別 (category)，常見類別如: 餐飲、交通、購物、娛樂、薪資、投資。
+      2. 識別類別 (category)，常見類別如: 餐飲、交通、購物、娛樂、居住、醫療、薪資、投資。
       3. 識別描述 (description)。
       4. 識別類型 (type): 'income' (收入) 或 'expense' (支出)。
       5. 如果文字提到日期，請格式化為 YYYY-MM-DD，否則回傳今日日期。`,
@@ -38,8 +38,10 @@ export const parseEntryWithAI = async (input: string): Promise<AIResponse | null
       }
     });
 
+    // Access .text as a property, not a method, as per guidelines.
     const text = response.text;
     if (!text) return null;
+    
     return JSON.parse(text) as AIResponse;
   } catch (error) {
     console.error("AI Parsing error:", error);
