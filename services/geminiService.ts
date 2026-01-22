@@ -2,7 +2,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIResponse } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+if (!apiKey) {
+  console.error("❌ API Key is missing! Check your .env file or GitHub Secrets.");
+}
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 export const parseEntryWithAI = async (input: string): Promise<AIResponse | null> => {
   try {
