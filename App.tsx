@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Transaction, Settings } from './types';
+import { Transaction, Settings } from './types';  
 import { DEFAULT_SETTINGS } from './constants';
 import { parseEntryWithAI } from './services/geminiService';
 import { syncToGoogleSheet } from './services/googleSheetService';
