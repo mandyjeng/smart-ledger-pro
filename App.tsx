@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, Settings } from './types';
-import { DEFAULT_SETTINGS, CATEGORIES } from './constants';
+import { DEFAULT_SETTINGS } from './constants';
 import { parseEntryWithAI } from './services/geminiService';
-import { syncToGoogleSheet } from './services/googleSheetService';
+import { syncToGoogleSheet, fetchHistoryFromSheet } from './services/googleSheetService';
 import Dashboard from './components/Dashboard';
 import TransactionCard from './components/TransactionCard';
 
@@ -18,12 +18,6 @@ const App: React.FC = () => {
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'settings'>('dashboard');
 
-  // Filter States
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
-
   useEffect(() => {
     const saved = localStorage.getItem('transactions');
     if (saved) setTransactions(JSON.parse(saved));
@@ -36,16 +30,6 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('app_settings', JSON.stringify(settings));
   }, [settings]);
-
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(tx => {
-      const matchQuery = tx.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         tx.category.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchType = filterType === 'all' || tx.type === filterType;
-      const matchCategory = filterCategory === 'all' || tx.category === filterCategory;
-      return matchQuery && matchType && matchCategory;
-    });
-  }, [transactions, searchQuery, filterType, filterCategory]);
 
   const handleAiSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +109,7 @@ const App: React.FC = () => {
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <div className="lg:col-span-8 space-y-10">
-              <Dashboard transactions={transactions} />
+              <Dashboard transactions={transactions} settings={settings} onMergeTransactions={(newTxs) => setTransactions(prev => [...newTxs, ...prev])} />
               
               {/* AI Input Block */}
               <div className="bg-yellow-400 border-4 border-zinc-900 rounded-3xl p-8 shadow-[8px_8px_0px_#18181b] relative overflow-hidden">
@@ -139,7 +123,7 @@ const App: React.FC = () => {
                 <form onSubmit={handleAiSubmit} className="relative z-10">
                   <input 
                     type="text"
-                    placeholder="例如：午餐花了 120 元、收到薪水 5 萬元..."
+                    placeholder="例如：晚餐花了 350 元..."
                     value={aiInput}
                     onChange={(e) => setAiInput(e.target.value)}
                     className="w-full bg-white border-3 border-zinc-900 rounded-2xl py-5 px-6 text-xl font-bold placeholder:text-zinc-400 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] focus:outline-none"
@@ -156,12 +140,12 @@ const App: React.FC = () => {
 
             <div className="lg:col-span-4">
               <div className="comic-card p-6 h-fit sticky top-10">
-                <h3 className="text-xl font-black mb-6 border-b-3 border-zinc-900 pb-2">最近動態</h3>
+                <h3 className="text-xl font-black mb-6 border-b-3 border-zinc-900 pb-2 italic">最近動態</h3>
                 <div className="space-y-4">
                   {transactions.length > 0 ? (
                     transactions.slice(0, 5).map(tx => <TransactionCard key={tx.id} transaction={tx} onDelete={deleteTransaction} />)
                   ) : (
-                    <p className="text-center py-10 text-zinc-400 font-bold italic">尚無數據</p>
+                    <p className="text-center py-10 text-zinc-400 font-bold italic">目前沒有紀錄</p>
                   )}
                 </div>
               </div>
@@ -171,27 +155,9 @@ const App: React.FC = () => {
 
         {activeTab === 'history' && (
           <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-               <h2 className="text-3xl font-black uppercase">明細歷史</h2>
-               <div className="flex items-center space-x-3">
-                 <input 
-                   type="text" 
-                   placeholder="搜尋關鍵字..." 
-                   className="input-comic font-bold"
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                 />
-                 <button 
-                   onClick={() => setShowFilters(!showFilters)}
-                   className={`p-3 comic-btn rounded-xl ${showFilters ? 'bg-zinc-900 text-white' : 'bg-white'}`}
-                 >
-                   <i className="fa-solid fa-filter"></i>
-                 </button>
-               </div>
-            </div>
-
+            <h2 className="text-3xl font-black uppercase italic">所有紀錄</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTransactions.map(tx => (
+              {transactions.map(tx => (
                 <TransactionCard key={tx.id} transaction={tx} onDelete={deleteTransaction} />
               ))}
             </div>
@@ -201,10 +167,10 @@ const App: React.FC = () => {
         {activeTab === 'settings' && (
           <div className="max-w-xl mx-auto space-y-8">
             <div className="comic-card p-10">
-              <h2 className="text-3xl font-black mb-8 italic">控制中心</h2>
+              <h2 className="text-3xl font-black mb-8 italic text-red-500">偏好設定</h2>
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-black uppercase mb-2">你的名稱</label>
+                  <label className="block text-sm font-black uppercase mb-2">顯示名稱</label>
                   <input 
                     type="text" 
                     value={settings.userName} 
@@ -225,9 +191,9 @@ const App: React.FC = () => {
                 <div className="pt-4">
                   <button 
                     onClick={() => setActiveTab('dashboard')}
-                    className="w-full bg-red-500 text-white font-black py-4 rounded-xl comic-btn text-xl"
+                    className="w-full bg-zinc-900 text-white font-black py-4 rounded-xl comic-btn text-xl"
                   >
-                    儲存並離開
+                    確認儲存
                   </button>
                 </div>
               </div>
@@ -236,12 +202,11 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Footer / Mobile Nav Overlay */}
-      <footer className="mt-20 border-t-3 border-zinc-900 pt-8 flex justify-between items-center opacity-50 font-black text-xs uppercase tracking-widest">
-         <div>© 2025 PawLedger App</div>
+      {/* Footer Updated to © 2026 MandyJeng App */}
+      <footer className="mt-20 border-t-3 border-zinc-900 pt-8 flex justify-between items-center opacity-60 font-black text-xs uppercase tracking-widest">
+         <div>© 2026 MandyJeng App</div>
          <div className="space-x-4">
-            <a href="#" className="hover:underline">Privacy</a>
-            <a href="#" className="hover:underline">Terms</a>
+            <span>MODERN COMIC LEDGER</span>
          </div>
       </footer>
     </div>
