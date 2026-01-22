@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     };
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-flash-latest",
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: schema,
