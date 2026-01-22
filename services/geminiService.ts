@@ -3,7 +3,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AIResponse } from "../types";
 
 // 初始化 GoogleGenAI 客戶端。
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+if (!apiKey) {
+  console.error("❌ API Key is missing! Check your .env file or GitHub Secrets.");
+}
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 export const parseEntryWithAI = async (input: string): Promise<AIResponse | null> => {
   // 診斷日誌：確認 API Key 是否存在 (僅顯示前幾碼以保安全)
